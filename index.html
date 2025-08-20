@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betobeats- Premium Beats Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1><i class="fas fa-music"></i> Betobeats</h1>
+            </div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#beats">Beats</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="cart-icon" onclick="toggleCart()">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count" id="cartCount">0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h2>Premium Beats for Your Next Hit</h2>
+            <p>Discover high-quality instrumentals from top producers worldwide</p>
+            <button class="cta-btn" onclick="scrollToBeats()">Browse Beats</button>
+        </div>
+    </section>
+
+    <!-- Beats Section -->
+    <section id="beats" class="beats-section">
+        <div class="container">
+            <h2 class="section-title">Featured Beats</h2>
+            
+            <!-- Filter Options -->
+            <div class="filter-bar">
+                <button class="filter-btn active" onclick="filterBeats('all')">All</button>
+                <button class="filter-btn" onclick="filterBeats('hip-hop')">Hip Hop</button>
+                <button class="filter-btn" onclick="filterBeats('trap')">Trap</button>
+                <button class="filter-btn" onclick="filterBeats('rnb')">R&B</button>
+                <button class="filter-btn" onclick="filterBeats('pop')">Pop</button>
+            </div>
+
+            <!-- Beats Grid -->
+            <div class="beats-grid" id="beatsGrid">
+                <!-- Beats will be dynamically loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="container">
+            <h2 class="section-title">About BeatZone</h2>
+            <div class="about-content">
+                <p>BeatZone is your premier destination for high-quality beats and instrumentals. We work with talented producers from around the world to bring you the freshest sounds for your next project.</p>
+                <div class="features">
+                    <div class="feature">
+                        <i class="fas fa-download"></i>
+                        <h3>Instant Download</h3>
+                        <p>Get your beats immediately after purchase</p>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>License Included</h3>
+                        <p>All beats come with usage rights</p>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-headphones"></i>
+                        <h3>High Quality</h3>
+                        <p>Professional studio-grade audio</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <h2 class="section-title">Get In Touch</h2>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>apongpo@gmail.com</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <span>+237 653728756</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Buea, Cameroon</span>
+                    </div>
+                </div>
+                <form class="contact-form">
+                    <input type="text" placeholder="Your Name" required>
+                    <input type="email" placeholder="Your Email" required>
+                    <textarea placeholder="Your Message" rows="5" required></textarea>
+                    <button type="submit">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Shopping Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Shopping Cart</h3>
+            <button class="close-cart" onclick="toggleCart()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <!-- Cart items will be dynamically added here -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <strong>Total: $<span id="cartTotal">0.00</span></strong>
+            </div>
+            <button class="checkout-btn" onclick="checkout()">
+                <i class="fas fa-credit-card"></i> Checkout
+            </button>
+        </div>
+    </div>
+
+    <!-- Cart Overlay -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+
+    <!-- Audio Player -->
+    <div class="audio-player" id="audioPlayer">
+        <div class="player-controls">
+            <button class="play-btn" id="playBtn" onclick="togglePlay()">
+                <i class="fas fa-play"></i>
+            </button>
+            <div class="track-info">
+                <span class="track-name" id="trackName">No track selected</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <button class="close-player" onclick="closePlayer()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <audio id="audioElement"></audio>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Betobeats</h3>
+                    <p>Your premier destination for high-quality beats and instrumentals.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#beats">Beats</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook">
+                            <span>Facebook: http://www.facebook.com/apongpo.bertrand/</span>
+                        </i></a>
+                        <a href="#"><i class="fab fa-twitter">
+                            <span>Twitter: https://twitter.com/apongpo</span>
+                        </i></a>
+                        <a href="#"><i class="fab fa-soundcloud">
+                            <span>SoundCloud: https://soundcloud.com/beto-beats-48375734</span>
+                        </i></a>
+                        <a href="#"><i class="fab fa-youtube">
+                            <span>YouTube: https://www.youtube.com/@betobeats742</span>
+                        </i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Betobeats. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
