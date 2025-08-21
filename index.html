@@ -12,7 +12,9 @@
     <header class="header">
         <div class="container">
             <div class="logo">
-                <h1><i class="fas fa-music"></i> Betobeat</h1>
+
+                <a class="logo-link" href="#home"><i class="fas fa-music"></i> Betobeats</a>
+
             </div>
             <nav class="nav">
                 <ul>
@@ -94,14 +96,19 @@
                 <div class="contact-info">
                     <div class="contact-item">
                         <i class="fas fa-envelope"></i>
-                        <span>apongpo@gmail.com</span>
+                        <a href="mailto:apongpo@gmail.com">
+                            <span>apongpo@gmail.com</span>
+                        </a>
                     </div>
                     <div class="contact-item">
                         <i class="fas fa-phone"></i>
-                        <span>+237 653728756</span>
+                        <a href="tel:+237653728756">
+                            <span>+237 653728756</span>
+                        </a>
                     </div>
                     <div class="contact-item">
                         <i class="fas fa-map-marker-alt"></i>
+                        
                         <span>Buea, Cameroon</span>
                     </div>
                 </div>
@@ -119,7 +126,7 @@
     <div class="cart-sidebar" id="cartSidebar">
         <div class="cart-header">
             <h3>Shopping Cart</h3>
-            <button class="close-cart" onclick="toggleCart()">
+            <button class="close-cart" onclick="toggleCart()" title="Close Cart">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -142,7 +149,7 @@
     <!-- Audio Player -->
     <div class="audio-player" id="audioPlayer">
         <div class="player-controls">
-            <button class="play-btn" id="playBtn" onclick="togglePlay()">
+            <button class="play-btn" id="playBtn" onclick="togglePlay()" title="Play/Pause">
                 <i class="fas fa-play"></i>
             </button>
             <div class="track-info">
@@ -151,7 +158,7 @@
             <div class="progress-bar">
                 <div class="progress" id="progress"></div>
             </div>
-            <button class="close-player" onclick="closePlayer()">
+            <button class="close-player" onclick="closePlayer()" title="Close Player">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -178,22 +185,22 @@
                 <div class="footer-section">
                     <h4>Follow Us</h4>
                     <div class="social-links">
-                        <a href="http://www.facebook.com/apongpo.bertrand/" target="_blank">
-                            <i class="fab fa-facebook"></i>
+
+                        <a href="http://www.facebook.com/apongpo.bertrand/"><i class="fab fa-facebook">
                             <span>Facebook</span>
-                        </a>
-                        <a href="https://twitter.com/apongpo" target="_blank">
-                            <i class="fab fa-twitter"></i>
+                        </i></a>
+                        <a href="https://twitter.com/apongpo"><i class="fab fa-twitter">
                             <span>Twitter</span>
-                        </a>
-                        <a href="https://soundcloud.com/beto-beats-48375734" target="_blank">
-                            <i class="fab fa-soundcloud"></i>
+                        </i></a>
+                        <a href="https://soundcloud.com/beto-beats-48375734"><i class="fab fa-soundcloud">
                             <span>SoundCloud</span>
-                        </a>
-                        <a href="https://www.youtube.com/@betobeats742" target="_blank">
-                            <i class="fab fa-youtube"></i>
+                        </i></a>
+                        <a href="https://www.youtube.com/@betobeats742"><i class="fab fa-youtube">
                             <span>YouTube</span>
-                        </a>
+                        </i></a>
+
+                        
+
                     </div>
                 </div>
             </div>
