@@ -41,6 +41,11 @@ body {
     font-weight: bold;
 }
 
+.logo-link {
+    color: #ff6b35;
+    text-decoration: none;
+}
+
 .logo i {
     margin-right: 10px;
 }
@@ -342,6 +347,15 @@ body {
     color: #ff6b35;
     margin-right: 1rem;
     width: 30px;
+}
+
+.contact-item span {
+    color: #fff;
+}
+.contact-item a {
+    color: #ff6b35;
+    text-decoration: none;
+    transition: color 0.3s ease;
 }
 
 .contact-form {
