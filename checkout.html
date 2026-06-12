@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betobeats - Checkout</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <main class="checkout-page">
+        <section class="checkout-shell container">
+            <a class="back-link" href="./index.html#beats">
+                <i class="fas fa-arrow-left"></i>
+                Back To Store
+            </a>
+
+            <h1 class="checkout-title">Secure Checkout</h1>
+            <p class="checkout-subtitle">Choose a payment method, then complete payment securely.</p>
+
+            <div class="checkout-layout">
+                <article class="checkout-card">
+                    <h2>Payment Method</h2>
+                    <div class="checkout-methods" id="checkoutMethods" role="radiogroup" aria-label="Payment methods">
+                        <button class="checkout-method active" type="button" data-provider="stripe" role="radio" aria-checked="true">
+                            <i class="fas fa-credit-card" aria-hidden="true"></i>
+                            <span>Card Payment</span>
+                        </button>
+                        <button class="checkout-method" type="button" data-provider="paypal" role="radio" aria-checked="false">
+                            <i class="fab fa-paypal" aria-hidden="true"></i>
+                            <span>PayPal</span>
+                        </button>
+                    </div>
+                    <div class="checkout-card-note" id="checkoutCardNote">
+                        You will enter your card details on Stripe secure checkout (Visa, Mastercard, Amex, Discover).
+                    </div>
+                    <div class="supported-cards checkout-supported-cards" aria-label="Supported cards">
+                        <i class="fab fa-cc-visa" aria-hidden="true"></i>
+                        <i class="fab fa-cc-mastercard" aria-hidden="true"></i>
+                        <i class="fab fa-cc-amex" aria-hidden="true"></i>
+                        <i class="fab fa-cc-discover" aria-hidden="true"></i>
+                        <span>Supported cards: Visa, Mastercard, Amex, Discover</span>
+                    </div>
+                    <button class="checkout-btn" id="payNowBtn" type="button">
+                        <i class="fas fa-lock"></i> Pay Now
+                    </button>
+                    <p class="checkout-helper" id="checkoutHelper"></p>
+                </article>
+
+                <article class="checkout-card">
+                    <h2>Order Summary</h2>
+                    <div class="checkout-items" id="checkoutItems"></div>
+                    <div class="checkout-total-row">
+                        <span>Total</span>
+                        <strong id="checkoutTotal">0 FCFA</strong>
+                    </div>
+                </article>
+            </div>
+
+            <article class="checkout-status" id="checkoutStatus" hidden></article>
+        </section>
+    </main>
+
+    <script src="checkout.js"></script>
+</body>
+</html>

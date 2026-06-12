@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betobeats - Superuser Approvals</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <a class="logo-link" href="index.html#home"><i class="fas fa-music"></i> Betobeats</a>
+            </div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="index.html#home">Home</a></li>
+                    <li><a href="index.html#beats">Beats</a></li>
+                    <li><a href="upload.html">Upload</a></li>
+                    <li><a href="moderation.html" aria-current="page">Approvals</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="upload-page-main">
+        <section class="upload-section moderation-section">
+            <div class="container moderation-shell">
+                <h2 class="section-title">Superuser Pending Uploads</h2>
+                <p class="upload-intro">Enter your superuser token to load pending beats and approve them.</p>
+
+                <div class="moderation-auth">
+                    <label for="moderationToken">Superuser Token</label>
+                    <div class="moderation-auth-row">
+                        <input type="password" id="moderationToken" placeholder="Enter superuser token" autocomplete="off">
+                        <button type="button" id="loadPendingBtn">Load Pending</button>
+                    </div>
+                    <p class="upload-status" id="moderationStatus" role="status" aria-live="polite"></p>
+                </div>
+
+                <div class="moderation-list" id="moderationList"></div>
+
+                <div class="upload-actions">
+                    <a class="cta-btn upload-back-btn" href="upload.html">
+                        <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                        Back To Upload
+                    </a>
+                    <a class="cta-btn upload-back-btn" href="index.html#beats">
+                        <i class="fas fa-store" aria-hidden="true"></i>
+                        Back To Store
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="moderation.js"></script>
+</body>
+</html>

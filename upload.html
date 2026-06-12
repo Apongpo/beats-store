@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betobeats - Upload Beat</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <a class="logo-link" href="index.html#home"><i class="fas fa-music"></i> Betobeats</a>
+            </div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="index.html#home">Home</a></li>
+                    <li><a href="index.html#beats">Beats</a></li>
+                    <li><a href="upload.html" aria-current="page">Upload</a></li>
+                    <li><a href="index.html#about">About</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="upload-page-main">
+        <section class="upload-section">
+            <div class="container">
+                <h2 class="section-title">Upload Your Beat</h2>
+                <p class="upload-intro">Both users and superusers can upload beats. Superuser uploads are auto-approved.</p>
+                <form class="upload-form" id="uploadForm" enctype="multipart/form-data" novalidate>
+                    <input type="text" name="title" placeholder="Beat Title" required>
+                    <input type="text" name="producer" placeholder="Producer Name" required>
+                    <div class="upload-row">
+                        <select name="genre" required>
+                            <option value="">Select Genre</option>
+                            <option value="hip-hop">Hip Hop</option>
+                            <option value="trap">Trap</option>
+                            <option value="afrobeat">Afrobeat</option>
+                            <option value="pop">Pop</option>
+                        </select>
+                        <input type="number" name="bpm" placeholder="BPM" min="1" required>
+                        <input type="text" name="musicalKey" placeholder="Key (e.g. F minor)" required>
+                    </div>
+                    <div class="upload-row">
+                        <input type="number" name="price" placeholder="Price (FCFA)" min="100" step="100" required>
+                        <select name="uploaderRole" id="uploaderRole" required>
+                            <option value="user" selected>User Upload</option>
+                            <option value="superuser">Superuser Upload</option>
+                        </select>
+                        <input type="text" name="uploadedBy" placeholder="Your Name" required>
+                    </div>
+                    <div id="superuserTokenRow" hidden>
+                        <input type="password" name="superuserToken" id="superuserToken" placeholder="Superuser Token (required for superuser)" autocomplete="off">
+                    </div>
+                    <div class="upload-file-field">
+                        <label for="audioFile">Beat Audio File</label>
+                        <input type="file" id="audioFile" name="audio" accept="audio/*" required>
+                    </div>
+                    <div class="upload-file-field">
+                        <label for="coverImageFile">Beat Cover Picture <span>(optional)</span></label>
+                        <input type="file" id="coverImageFile" name="coverImage" accept="image/*">
+                    </div>
+                    <button type="submit">Upload Beat</button>
+                    <p class="upload-status" id="uploadStatus" role="status" aria-live="polite"></p>
+                </form>
+                <div class="upload-actions">
+                    <a class="cta-btn upload-back-btn" href="index.html#beats">
+                        <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                        Back To Store
+                    </a>
+                    <a class="cta-btn upload-back-btn" href="moderation.html">
+                        <i class="fas fa-user-shield" aria-hidden="true"></i>
+                        Superuser Approvals
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="upload.js"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Betobeats- Premium Beats Store</title>
+    <title>Betobeats - Premium Beats Store</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -20,14 +20,15 @@
                 <ul>
                     <li><a href="#home">Home</a></li>
                     <li><a href="#beats">Beats</a></li>
+                    <li><a href="upload.html">Upload</a></li>
                     <li><a href="#about">About</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
             </nav>
-            <div class="cart-icon" onclick="toggleCart()">
+            <button class="cart-icon" id="cartToggleBtn" type="button" aria-label="Open shopping cart" aria-controls="cartSidebar" aria-expanded="false">
                 <i class="fas fa-shopping-cart"></i>
                 <span class="cart-count" id="cartCount">0</span>
-            </div>
+            </button>
         </div>
     </header>
 
@@ -36,7 +37,7 @@
         <div class="hero-content">
             <h2>Premium Beats for Your Next Hit</h2>
             <p>Discover high-quality instrumentals from top producers worldwide</p>
-            <button class="cta-btn" onclick="scrollToBeats()">Browse Beats</button>
+            <button class="cta-btn" id="browseBeatsBtn" type="button">Browse Beats</button>
         </div>
     </section>
 
@@ -47,11 +48,11 @@
             
             <!-- Filter Options -->
             <div class="filter-bar">
-                <button class="filter-btn active" onclick="filterBeats('all')">All</button>
-                <button class="filter-btn" onclick="filterBeats('hip-hop')">Hip Hop</button>
-                <button class="filter-btn" onclick="filterBeats('trap')">Trap</button>
-                <button class="filter-btn" onclick="filterBeats('rnb')">Afro</button>
-                <button class="filter-btn" onclick="filterBeats('pop')">Pop</button>
+                <button class="filter-btn active" type="button" data-genre="all" aria-pressed="true">All</button>
+                <button class="filter-btn" type="button" data-genre="hip-hop" aria-pressed="false">Hip Hop</button>
+                <button class="filter-btn" type="button" data-genre="trap" aria-pressed="false">Trap</button>
+                <button class="filter-btn" type="button" data-genre="afrobeat" aria-pressed="false">Afro</button>
+                <button class="filter-btn" type="button" data-genre="pop" aria-pressed="false">Pop</button>
             </div>
 
             <!-- Beats Grid -->
@@ -64,9 +65,9 @@
     <!-- About Section -->
     <section id="about" class="about-section">
         <div class="container">
-            <h2 class="section-title">About BeatZone</h2>
+            <h2 class="section-title">About Betobeats</h2>
             <div class="about-content">
-                <p>BeatZone is your premier destination for high-quality beats and instrumentals. We work with talented producers from around the world to bring you the freshest sounds for your next project.</p>
+                <p>Betobeats is your premier destination for high-quality beats and instrumentals. We work with talented producers from around the world to bring you the freshest sounds for your next project.</p>
                 <div class="features">
                     <div class="feature">
                         <i class="fas fa-download"></i>
@@ -112,12 +113,13 @@
                         <span>Buea, Cameroon</span>
                     </div>
                 </div>
-                <form class="contact-form">
-                    <input type="text" placeholder="Your Name" required>
-                    <input type="email" placeholder="Your Email" required>
-                    <textarea placeholder="Your Message" rows="5" required></textarea>
+                <form class="contact-form" id="contactForm" novalidate>
+                    <input type="text" name="name" placeholder="Your Name" aria-label="Your name" required>
+                    <input type="email" name="email" placeholder="Your Email" aria-label="Your email" required>
+                    <textarea name="message" placeholder="Your Message" aria-label="Your message" rows="5" required></textarea>
                     <button type="submit">Send Message</button>
                 </form>
+                <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
             </div>
         </div>
     </section>
@@ -126,7 +128,7 @@
     <div class="cart-sidebar" id="cartSidebar">
         <div class="cart-header">
             <h3>Shopping Cart</h3>
-            <button class="close-cart" onclick="toggleCart()" title="Close Cart">
+            <button class="close-cart" id="closeCartBtn" type="button" title="Close Cart" aria-label="Close shopping cart">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -135,21 +137,32 @@
         </div>
         <div class="cart-footer">
             <div class="cart-total">
-                <strong>Total: $<span id="cartTotal">0.00</span></strong>
+                <strong>Total: <span id="cartTotal">0 FCFA</span></strong>
             </div>
-            <button class="checkout-btn" onclick="checkout()">
+            <div class="checkout-options" id="checkoutOptions" role="group" aria-label="Select checkout provider">
+                <button class="provider-btn" type="button" data-provider="paypal" aria-pressed="false">PayPal</button>
+                <button class="provider-btn active" type="button" data-provider="stripe" aria-pressed="true">Card (Visa/Mastercard/Amex)</button>
+            </div>
+            <div class="supported-cards" aria-label="Supported cards">
+                <i class="fab fa-cc-visa" aria-hidden="true"></i>
+                <i class="fab fa-cc-mastercard" aria-hidden="true"></i>
+                <i class="fab fa-cc-amex" aria-hidden="true"></i>
+                <i class="fab fa-cc-discover" aria-hidden="true"></i>
+                <span>Supported cards: Visa, Mastercard, Amex, Discover</span>
+            </div>
+            <button class="checkout-btn" id="checkoutBtn" type="button">
                 <i class="fas fa-credit-card"></i> Checkout
             </button>
         </div>
     </div>
 
     <!-- Cart Overlay -->
-    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div class="cart-overlay" id="cartOverlay" role="button" tabindex="0" aria-label="Close shopping cart"></div>
 
     <!-- Audio Player -->
     <div class="audio-player" id="audioPlayer">
         <div class="player-controls">
-            <button class="play-btn" id="playBtn" onclick="togglePlay()" title="Play/Pause">
+            <button class="play-btn" id="playBtn" type="button" title="Play/Pause" aria-label="Play or pause preview" aria-pressed="false">
                 <i class="fas fa-play"></i>
             </button>
             <div class="track-info">
@@ -158,11 +171,11 @@
             <div class="progress-bar">
                 <div class="progress" id="progress"></div>
             </div>
-            <button class="close-player" onclick="closePlayer()" title="Close Player">
+            <button class="close-player" id="closePlayerBtn" type="button" title="Close Player" aria-label="Close audio player">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <audio id="audioElement"></audio>
+        <audio id="audioElement" preload="metadata"></audio>
     </div>
 
     <!-- Footer -->
@@ -178,6 +191,7 @@
                     <ul>
                         <li><a href="#home">Home</a></li>
                         <li><a href="#beats">Beats</a></li>
+                        <li><a href="upload.html">Upload</a></li>
                         <li><a href="#about">About</a></li>
                         <li><a href="#contact">Contact</a></li>
                     </ul>
@@ -205,6 +219,8 @@
             </div>
         </div>
     </footer>
+
+    <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
 
     <script src="script.js"></script>
 </body>
