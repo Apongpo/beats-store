@@ -22,11 +22,14 @@ const genreLabels = {
     pop: "Pop"
 };
 
+const PREVIEW_LIMIT_SECONDS = 10;
+
 let beatsData = [];
 let currentFilter = "all";
 let cart = [];
 let currentTrackId = null;
 let fallbackTrackId = null;
+let previewLimitReachedForTrackId = null;
 
 const beatsGrid = document.getElementById("beatsGrid");
 const filterButtons = document.querySelectorAll(".filter-btn");
@@ -295,7 +298,10 @@ function playBeat(id) {
         trackName.textContent = `${beat.title} - ${beat.producer}`;
         currentTrackId = id;
         fallbackTrackId = id;
+        previewLimitReachedForTrackId = null;
     }
+
+    audioElement.currentTime = 0;
 
     audioPlayer.classList.add("active");
     audioElement.play()
@@ -487,12 +493,25 @@ function wireEventListeners() {
 
     if (audioElement) {
         audioElement.addEventListener("timeupdate", () => {
+            if (audioElement.currentTime >= PREVIEW_LIMIT_SECONDS) {
+                audioElement.pause();
+                audioElement.currentTime = 0;
+                setPlayIcon(false);
+
+                if (previewLimitReachedForTrackId !== currentTrackId) {
+                    previewLimitReachedForTrackId = currentTrackId;
+                    showToast("Preview limit reached (10 seconds).", "info");
+                }
+            }
+
             if (!audioElement.duration || !progress) {
                 if (progress) progress.style.width = "0%";
                 return;
             }
 
-            const percentage = (audioElement.currentTime / audioElement.duration) * 100;
+            const maxDuration = Math.min(audioElement.duration, PREVIEW_LIMIT_SECONDS);
+            const current = Math.min(audioElement.currentTime, PREVIEW_LIMIT_SECONDS);
+            const percentage = maxDuration > 0 ? (current / maxDuration) * 100 : 0;
             progress.style.width = `${percentage}%`;
         });
 

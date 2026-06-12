@@ -55,7 +55,11 @@ async function handleBeatUpload(event) {
             throw new Error(payload.error || "Beat upload failed.");
         }
 
-        uploadStatus.textContent = payload.message || "Beat uploaded.";
+        const providerText = payload.storageProvider === "google-drive"
+            ? "Saved to Google Drive."
+            : "Saved to local server storage.";
+        const detailText = payload.storageMessage ? ` ${payload.storageMessage}` : "";
+        uploadStatus.textContent = `${payload.message || "Beat uploaded."} ${providerText}${detailText}`.trim();
         uploadForm.reset();
         if (uploaderRole) {
             uploaderRole.value = "user";

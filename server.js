@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 const multer = require("multer");
 const sqlite3 = require("sqlite3").verbose();
 const Stripe = require("stripe");
+const { google } = require("googleapis");
 
 dotenv.config();
 
@@ -14,6 +15,11 @@ const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 const superuserToken = process.env.SUPERUSER_TOKEN || "superuser-dev-token";
 const zeroDecimalCurrencies = new Set(["bif", "clp", "djf", "gnf", "jpy", "kmf", "krw", "mga", "pyg", "rwf", "ugx", "vnd", "vuv", "xaf", "xof", "xpf"]);
+const driveRootFolderRaw = process.env.GOOGLE_DRIVE_FOLDER_ID || "";
+const driveSharedDriveId = process.env.GOOGLE_DRIVE_SHARED_DRIVE_ID || "";
+const driveServiceEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || "";
+const drivePrivateKey = (process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY || "").replace(/\\n/g, "\n");
+const driveMakePublic = String(process.env.GOOGLE_DRIVE_MAKE_PUBLIC || "true").toLowerCase() === "true";
 
 const dataDir = path.join(__dirname, "data");
 const uploadsDir = path.join(__dirname, "uploads");
@@ -59,6 +65,148 @@ const dbGet = (sql, params = []) => new Promise((resolve, reject) => {
     });
 });
 
+function normalizeDriveFolderId(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+
+    const folderUrlMatch = raw.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+    if (folderUrlMatch?.[1]) {
+        return folderUrlMatch[1];
+    }
+
+    return raw;
+}
+
+const driveRootFolderId = normalizeDriveFolderId(driveRootFolderRaw);
+const looksLikePlaceholderEmail = /project-id\.iam\.gserviceaccount\.com/i.test(driveServiceEmail);
+const looksLikePlaceholderKey = /YOUR_PRIVATE_KEY/i.test(drivePrivateKey);
+const hasMinimumDriveValues = Boolean(driveRootFolderId && driveServiceEmail && drivePrivateKey);
+const isDriveEnabled = Boolean(hasMinimumDriveValues && !looksLikePlaceholderEmail && !looksLikePlaceholderKey);
+
+const driveStatus = isDriveEnabled
+    ? { enabled: true, provider: "google-drive", reason: "Google Drive upload is active." }
+    : {
+        enabled: false,
+        provider: "local",
+        reason: hasMinimumDriveValues
+            ? "Google Drive credentials look like placeholders. Update service account email/private key in .env."
+            : "Google Drive not fully configured. Using local uploads."
+    };
+
+const driveAuth = isDriveEnabled
+    ? new google.auth.JWT({
+        email: driveServiceEmail,
+        key: drivePrivateKey,
+        scopes: ["https://www.googleapis.com/auth/drive"]
+    })
+    : null;
+
+const drive = isDriveEnabled
+    ? google.drive({ version: "v3", auth: driveAuth })
+    : null;
+
+function sanitizeFolderName(value) {
+    return String(value || "beat")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 48) || "beat";
+}
+
+function buildDriveFileLink(fileId, isImage = false) {
+    return isImage
+        ? `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileId)}`
+        : `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`;
+}
+
+async function ensureDriveFolder(name, parentId) {
+    if (!drive) {
+        throw new Error("Google Drive is not configured.");
+    }
+
+    const escapedName = String(name).replace(/'/g, "\\'");
+    const query = [
+        `name='${escapedName}'`,
+        "mimeType='application/vnd.google-apps.folder'",
+        "trashed=false",
+        `'${parentId}' in parents`
+    ].join(" and ");
+
+    const listArgs = {
+        q: query,
+        fields: "files(id,name)",
+        pageSize: 1,
+        supportsAllDrives: true,
+        includeItemsFromAllDrives: true
+    };
+
+    if (driveSharedDriveId) {
+        listArgs.corpora = "drive";
+        listArgs.driveId = driveSharedDriveId;
+    }
+
+    const existing = await drive.files.list(listArgs);
+
+    const folder = existing.data.files?.[0];
+    if (folder) {
+        return folder.id;
+    }
+
+    const created = await drive.files.create({
+        requestBody: {
+            name,
+            mimeType: "application/vnd.google-apps.folder",
+            parents: [parentId]
+        },
+        fields: "id",
+        supportsAllDrives: true
+    });
+
+    return created.data.id;
+}
+
+async function uploadFileToDrive(localPath, fileName, mimeType, parentFolderId) {
+    if (!drive) {
+        throw new Error("Google Drive is not configured.");
+    }
+
+    const uploaded = await drive.files.create({
+        requestBody: {
+            name: fileName,
+            parents: [parentFolderId]
+        },
+        media: {
+            mimeType: mimeType || "application/octet-stream",
+            body: fs.createReadStream(localPath)
+        },
+        fields: "id",
+        supportsAllDrives: true
+    });
+
+    if (driveMakePublic) {
+        await drive.permissions.create({
+            fileId: uploaded.data.id,
+            requestBody: {
+                role: "reader",
+                type: "anyone"
+            },
+            supportsAllDrives: true
+        });
+    }
+
+    return uploaded.data.id;
+}
+
+async function deleteDriveFile(fileId) {
+    if (!drive || !fileId) return;
+
+    try {
+        await drive.files.delete({ fileId, supportsAllDrives: true });
+    } catch (_error) {
+        // Ignore deletion failures so API delete still completes for DB cleanup.
+    }
+}
+
 function mapBeatRow(row) {
     return {
         id: row.id,
@@ -71,9 +219,11 @@ function mapBeatRow(row) {
         audioUrl: row.audio_url,
         coverImageUrl: row.cover_image_url,
         fallbackAudioUrl: row.fallback_audio_url,
+        downloadUrl: `/api/beats/${row.id}/download`,
         status: row.status,
         uploadedBy: row.uploaded_by,
         uploaderRole: row.uploader_role,
+        assetFolderId: row.asset_folder_id || null,
         createdAt: row.created_at
     };
 }
@@ -100,8 +250,24 @@ async function initializeDatabase() {
 
     const tableInfo = await dbAll("PRAGMA table_info(beats)");
     const hasCoverImageColumn = tableInfo.some((column) => column.name === "cover_image_url");
+    const hasAudioDriveIdColumn = tableInfo.some((column) => column.name === "audio_drive_file_id");
+    const hasCoverDriveIdColumn = tableInfo.some((column) => column.name === "cover_drive_file_id");
+    const hasAssetFolderIdColumn = tableInfo.some((column) => column.name === "asset_folder_id");
+
     if (!hasCoverImageColumn) {
         await dbRun("ALTER TABLE beats ADD COLUMN cover_image_url TEXT");
+    }
+
+    if (!hasAudioDriveIdColumn) {
+        await dbRun("ALTER TABLE beats ADD COLUMN audio_drive_file_id TEXT");
+    }
+
+    if (!hasCoverDriveIdColumn) {
+        await dbRun("ALTER TABLE beats ADD COLUMN cover_drive_file_id TEXT");
+    }
+
+    if (!hasAssetFolderIdColumn) {
+        await dbRun("ALTER TABLE beats ADD COLUMN asset_folder_id TEXT");
     }
 
     const countRow = await dbGet("SELECT COUNT(*) AS total FROM beats");
@@ -168,6 +334,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(uploadsDir));
 app.use(express.static(__dirname));
 
+app.get("/api/storage-status", (_req, res) => {
+    return res.json({
+        provider: driveStatus.provider,
+        driveEnabled: driveStatus.enabled,
+        message: driveStatus.reason,
+        folderId: driveRootFolderId || null
+    });
+});
+
 app.get("/api/beats", async (req, res) => {
     try {
         const includePending = String(req.query.includePending || "").toLowerCase() === "true";
@@ -221,8 +396,36 @@ app.post("/api/beats/upload", upload.fields([
         }
 
         const status = normalizedRole === "superuser" ? "approved" : "pending";
-        const audioPath = `/uploads/${audioFile.filename}`;
-        const coverImagePath = coverImageFile ? `/uploads/${coverImageFile.filename}` : null;
+        let audioPath = `/uploads/${audioFile.filename}`;
+        let coverImagePath = coverImageFile ? `/uploads/${coverImageFile.filename}` : null;
+        let audioDriveFileId = null;
+        let coverDriveFileId = null;
+        let assetFolderId = null;
+
+        if (isDriveEnabled) {
+            const timestampLabel = Date.now();
+            const folderName = `beat-${sanitizeFolderName(title)}-${timestampLabel}`;
+            assetFolderId = await ensureDriveFolder(folderName, driveRootFolderId);
+
+            audioDriveFileId = await uploadFileToDrive(
+                req.files.audio[0].path,
+                req.files.audio[0].originalname || `${folderName}-audio`,
+                req.files.audio[0].mimetype,
+                assetFolderId
+            );
+            audioPath = buildDriveFileLink(audioDriveFileId, false);
+
+            if (coverImageFile) {
+                coverDriveFileId = await uploadFileToDrive(
+                    coverImageFile.path,
+                    coverImageFile.originalname || `${folderName}-cover`,
+                    coverImageFile.mimetype,
+                    assetFolderId
+                );
+                coverImagePath = buildDriveFileLink(coverDriveFileId, true);
+            }
+        }
+
         const numericPrice = Number(price);
         const numericBpm = Number(bpm);
 
@@ -231,8 +434,8 @@ app.post("/api/beats/upload", upload.fields([
         }
 
         const result = await dbRun(
-            `INSERT INTO beats (title, producer, genre, bpm, musical_key, price, audio_url, cover_image_url, fallback_audio_url, status, uploaded_by, uploader_role)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO beats (title, producer, genre, bpm, musical_key, price, audio_url, cover_image_url, fallback_audio_url, status, uploaded_by, uploader_role, audio_drive_file_id, cover_drive_file_id, asset_folder_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 String(title).trim(),
                 String(producer).trim(),
@@ -245,16 +448,29 @@ app.post("/api/beats/upload", upload.fields([
                 "./Secret%20mp4.wav",
                 status,
                 String(uploadedBy).trim(),
-                normalizedRole
+                normalizedRole,
+                audioDriveFileId,
+                coverDriveFileId,
+                assetFolderId
             ]
         );
+
+        if (isDriveEnabled) {
+            [audioFile.path, coverImageFile?.path].filter(Boolean).forEach((filePath) => {
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                }
+            });
+        }
 
         const row = await dbGet("SELECT * FROM beats WHERE id = ?", [result.lastID]);
         return res.status(201).json({
             message: status === "approved"
                 ? "Beat uploaded and published."
                 : "Beat uploaded. It is pending superuser approval.",
-            beat: mapBeatRow(row)
+            beat: mapBeatRow(row),
+            storageProvider: driveStatus.provider,
+            storageMessage: driveStatus.reason
         });
     } catch (error) {
         return res.status(500).json({ error: error.message || "Beat upload failed." });
@@ -306,6 +522,15 @@ app.delete("/api/beats/:id", async (req, res) => {
 
         await dbRun("DELETE FROM beats WHERE id = ?", [beatId]);
 
+        if (row.asset_folder_id) {
+            await deleteDriveFile(row.asset_folder_id);
+        } else {
+            await Promise.all([
+                deleteDriveFile(row.audio_drive_file_id),
+                deleteDriveFile(row.cover_drive_file_id)
+            ]);
+        }
+
         const removablePaths = [row.audio_url, row.cover_image_url]
             .filter(Boolean)
             .map((filePath) => String(filePath).replace(/^\//, ""))
@@ -321,6 +546,32 @@ app.delete("/api/beats/:id", async (req, res) => {
         return res.json({ message: "Beat deleted." });
     } catch (error) {
         return res.status(500).json({ error: "Beat deletion failed." });
+    }
+});
+
+app.get("/api/beats/:id/download", async (req, res) => {
+    try {
+        const beatId = Number(req.params.id);
+        if (!Number.isInteger(beatId) || beatId <= 0) {
+            return res.status(400).json({ error: "Invalid beat id." });
+        }
+
+        const row = await dbGet("SELECT * FROM beats WHERE id = ?", [beatId]);
+        if (!row) {
+            return res.status(404).json({ error: "Beat not found." });
+        }
+
+        if (row.audio_drive_file_id) {
+            return res.redirect(buildDriveFileLink(row.audio_drive_file_id, false));
+        }
+
+        if (row.audio_url) {
+            return res.redirect(row.audio_url);
+        }
+
+        return res.status(404).json({ error: "No audio file found for this beat." });
+    } catch (_error) {
+        return res.status(500).json({ error: "Could not create download link." });
     }
 });
 
